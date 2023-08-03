@@ -56,6 +56,7 @@ function handleEvent(event) {
     ).then(() => {
       console.log("success");
     });
+    search_Field.value = "";
   }
 }
 
