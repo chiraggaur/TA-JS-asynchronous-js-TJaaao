@@ -1,7 +1,21 @@
 let url = "https://api.spaceflightnewsapi.net/v3/articles?_limit=30";
 let newsElm = document.querySelector(".news");
 let select = document.querySelector("select");
+let main = document.querySelector(".main");
+let errorElm = document.querySelector(".error-message");
 let allNews = [];
+
+function handleSpinner(isLoading = false) {
+  if (isLoading) {
+    newsElm.innerHTML = `<div class="donut"></div>`;
+  }
+}
+
+function handleErrorMessage(message = "Something went wrong") {
+  main.style.display = "none";
+  errorElm.style.display = "block";
+  errorElm.innerText = message;
+}
 
 function renderNews(news) {
   newsElm.innerHTML = "";
@@ -38,25 +52,29 @@ function displayOptions(allSources) {
   });
 }
 
-fetch(url)
-  .then((res) => {
-    if (!res.ok) {
-      throw new Error(`Error happened : ${res.status}`);
-    }
-    return res.json();
-    // console.log(res);
-  })
-  .then((news) => {
-    if (Array.isArray(news)) {
-      allNews = news;
-      renderNews(news);
-      let allSources = Array.from(new Set(news.map((n) => n.newsSite)));
-      displayOptions(allSources);
-    }
-  })
-  .catch((error) => {
-    newsElm.innerText = error;
-  });
+function init() {
+  handleSpinner(true);
+  fetch(url)
+    .then((res) => {
+      if (!res.ok) {
+        handleSpinner();
+        throw new Error(`Error happened : ${res.status}`);
+      }
+      return res.json();
+      // console.log(res);
+    })
+    .then((news) => {
+      if (Array.isArray(news)) {
+        allNews = news;
+        renderNews(news);
+        let allSources = Array.from(new Set(news.map((n) => n.newsSite)));
+        displayOptions(allSources);
+      }
+    })
+    .catch((error) => {
+      newsElm.innerText = error;
+    });
+}
 
 select.addEventListener("change", (event) => {
   let updatedSource = event.target.value;
@@ -70,3 +88,9 @@ select.addEventListener("change", (event) => {
 
   renderNews(filteredsource);
 });
+
+if (navigator.onLine) {
+  init();
+} else {
+  handleErrorMessage("Check Your internet Connection ❌ ");
+}
